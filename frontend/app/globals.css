@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+/* Dark mode is driven by a class on <html>, set by ThemeScript from the
+   signed-in user's `theme` setting (light | dark | system). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #f6f7fb;
+  --bg-accent: #eef0f8;
+  --panel: #ffffff;
+  --panel-raised: #ffffff;
+  --line: #e2e5ee;
+  --line-strong: #cbd2e1;
+  --text: #101426;
+  --muted: #5b6478;
+  --faint: #8b93a7;
+  --brand: #4f46e5;
+  --brand-hover: #4338ca;
+  --brand-soft: #eef0ff;
+  --brand-on: #ffffff;
+  --positive: #059669;
+  --caution: #b45309;
+  --negative: #dc2626;
+  --shadow: 0 1px 2px rgb(16 20 38 / 0.06), 0 8px 24px -12px rgb(16 20 38 / 0.12);
+}
+
+.dark {
+  --bg: #0b0e18;
+  --bg-accent: #10141f;
+  --panel: #141926;
+  --panel-raised: #1a2030;
+  --line: #262d3f;
+  --line-strong: #38415a;
+  --text: #eef1f8;
+  --muted: #9aa3b8;
+  --faint: #6d7691;
+  --brand: #6366f1;
+  --brand-hover: #7c7ff2;
+  --brand-soft: #1e2140;
+  --brand-on: #ffffff;
+  --positive: #34d399;
+  --caution: #fbbf24;
+  --negative: #f87171;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px -16px rgb(0 0 0 / 0.6);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-accent: var(--bg-accent);
+  --color-panel: var(--panel);
+  --color-panel-raised: var(--panel-raised);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-on: var(--brand-on);
+  --color-positive: var(--positive);
+  --color-caution: var(--caution);
+  --color-negative: var(--negative);
+
+  --shadow-panel: var(--shadow);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+}
+
+@layer base {
+  * {
+    border-color: var(--line);
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: var(--brand);
+    color: var(--brand-on);
+  }
+}
+
+@layer components {
+  /* Repeated on every button in the app; kept here so focus rings and
+     disabled states cannot drift between them. */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg text-sm
+      font-medium whitespace-nowrap transition-colors outline-none
+      focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2
+      focus-visible:ring-offset-bg disabled:pointer-events-none
+      disabled:opacity-50;
+  }
+
+  .btn-md {
+    @apply h-10 px-4;
+  }
+
+  .btn-sm {
+    @apply h-8 px-3 text-[13px];
+  }
+
+  .btn-primary {
+    @apply bg-brand text-brand-on hover:bg-brand-hover;
+  }
+
+  .btn-secondary {
+    @apply border border-line bg-panel text-text hover:bg-bg-accent;
+  }
+
+  .btn-ghost {
+    @apply text-muted hover:bg-bg-accent hover:text-text;
+  }
+
+  .field {
+    @apply w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm
+      text-text placeholder:text-faint outline-none transition
+      focus:border-brand focus:ring-2 focus:ring-brand/25
+      disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .label {
+    @apply mb-1.5 block text-[13px] font-medium text-muted;
+  }
+
+  .card {
+    @apply rounded-xl border border-line bg-panel;
+  }
+}

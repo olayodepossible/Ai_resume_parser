@@ -206,7 +206,7 @@ OPENAI_MODEL=your_model_id
 The application also supports:
 
 ```env
-OPENROUTER_BASE_URL=
+OPENROUTER_BASE_URL(OPENAI_API_KEY)=
 CORS_ORIGINS=
 CORS_ORIGIN_REGEX=
 APP_NAME=
@@ -388,7 +388,6 @@ Key metrics include:
 | Structured-output success           | Measure response reliability                                     |
 | Failure handling                    | Ensure technical errors are not treated as candidate assessments |
 
-The Day 5 system should be compared against the Day 1 manual baseline and, where useful, a simple general-purpose ChatGPT baseline.
 
 ---
 
@@ -441,7 +440,7 @@ Before production use, the authentication layer would require improvements inclu
 
 ## Current Scope
 
-The five-day v1 focuses on one workflow:
+This focuses on one workflow:
 
 > **Job description + candidate resume → evidence-based AI review → human assessment**
 
@@ -489,21 +488,125 @@ Shared Review Pipeline
 Structured Recruiter Review
 ```
 
-This integration is not required for the five-day v1.
-
 ---
 
-## Definition of Done
+# frontend
 
-The v1 is complete when a non-developer recruiter can:
+Next.js interface for the screening API in [`../backend`](../backend). App
+Router, TypeScript, Tailwind CSS v4. No state library and no data-fetching
+library — the app has one long-running request and one user record, both of
+which fit in component state.
 
-1. open the application;
-2. provide a job description;
-3. upload candidate resumes;
-4. start the review without writing prompts or code;
-5. receive structured, evidence-supported results;
-6. clearly see missing or uncertain information;
-7. distinguish processing failures from candidate findings;
-8. use the output as input to their own human assessment.
+## Setup
 
-The project's success is measured by whether this workflow is **faster, repeatable, independently usable, and measurably accurate compared with the Day 1 baseline**.
+```bash
+npm install
+cp .env.example .env.local   # already present; edit if the API moved
+npm run dev
+```
+
+Runs on <http://localhost:3000>. The backend must be running too, and its
+`CORS_ORIGINS` must include whichever origin you open the app at.
+
+`http://localhost:3000` and `http://127.0.0.1:3000` are different origins to a
+browser. The backend allows both, plus any loopback port while
+`ENVIRONMENT=development`, so opening either spelling — or `:3001` when Next
+falls back to it — works. If you do hit a CORS error, check the origin in the
+browser's address bar against `CORS_ORIGINS` in `backend/.env`; a blocked
+request looks like a network failure even though the API answered normally.
+
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_API_BASE_URL` | Origin of the FastAPI backend. Defaults to `http://127.0.0.1:8000`. |
+
+`NEXT_PUBLIC_` is required: the calls are made from the browser, so the value
+is inlined into the client bundle at build time and is not a secret.
+
+## Routes
+
+| Route | Auth | What it is |
+| --- | --- | --- |
+| `/` | public | Landing page. |
+| `/signup`, `/login` | public | Redirect to `/dashboard` if a valid token is already stored. |
+| `/dashboard` | required | Screening panel and the latest results. |
+| `/dashboard/settings` | required | Profile, screening defaults, theme. |
+
+## The screening flow
+
+`Screen candidates` opens a slide-over (`components/screening-pane.tsx`) with
+three steps:
+
+1. **Resumes** — drag-and-drop or browse, multiple PDFs, accumulating across
+   picks. Non-PDFs, empty files, and anything over 10 MB are rejected inline
+   with a reason; duplicates are dropped by name/size/mtime.
+2. **Job description** — a two-tab control, *paste text* or *upload PDF*. The
+   tabs are exclusive because `POST /screenings` returns 422 if both
+   `job_description_text` and `job_description_file` are sent.
+3. **Position title** — optional; prefilled from the user's saved default.
+
+`Send for screening` posts the batch as `multipart/form-data`. The pane stays
+open with a progress state and a working **Cancel** (an `AbortController`),
+because a full batch takes roughly one model round-trip per candidate plus a
+ranking call.
+
+Results render into `components/results-view.tsx`: the ranked list with
+per-candidate scores, matched skills, concerns, and the model's justification.
+Files the backend could not read come back in `rejectedFiles` and are shown as
+a warning rather than being hidden.
+
+Results are **not persisted** — they live in component state for the session.
+Reloading the dashboard clears them.
+
+## Layout
+
+```
+app/
+  layout.tsx                  fonts, AuthProvider, pre-paint theme script
+  page.tsx                    landing
+  globals.css                 design tokens (light/dark) + .btn/.field/.card
+  (auth)/layout.tsx           split-screen shell for the two auth pages
+  (auth)/login/page.tsx
+  (auth)/signup/page.tsx
+  dashboard/layout.tsx        auth guard + header (profile, settings)
+  dashboard/page.tsx          screening entry point + results
+  dashboard/settings/page.tsx
+components/
+  screening-pane.tsx          the slide-over; owns the POST
+  resume-dropzone.tsx         multi-file PDF picker
+  job-description-input.tsx   paste-or-upload tabs
+  results-view.tsx            ranked list, expandable per candidate
+  profile-menu.tsx            avatar dropdown: profile, settings, sign out
+  avatar.tsx, alert.tsx, icons.tsx
+lib/
+  api.ts                      fetch wrapper, ApiError, endpoint methods
+  auth-context.tsx            token + user, backed by localStorage
+  types.ts                    mirrors backend/app/schemas.py
+  screening.ts                joins the response's three per-candidate arrays
+  limits.ts                   client-side mirror of the upload limits
+  theme.ts                    light/dark application and pre-paint bootstrap
+```
+
+## Auth, and what it is not
+
+The token from `/api/v1/auth/login` is kept in `localStorage` and sent as
+`Authorization: Bearer`. That means:
+
+- **The route guard is client-side** (`app/dashboard/layout.tsx`), not
+  middleware — middleware runs on the server and cannot read `localStorage`.
+  The dashboard renders a spinner until the stored token has been checked
+  against `/auth/me`.
+- **Signing out is a local discard.** The backend issues self-expiring tokens
+  with no revocation list, so there is no session to end server-side.
+
+Both follow from the placeholder auth in `backend/app/auth.py`. Moving to
+httpOnly cookies plus real sessions would let the guard become middleware and
+sign-out become a server call; until then this is deliberately the simple
+version.
+
+## Checks
+
+```bash
+npm run typecheck
+npm run lint
+npm run build
+```
