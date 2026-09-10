@@ -1,0 +1,509 @@
+# AI Resume Review OS Mini
+
+An AI-assisted recruiter workflow that compares candidate resumes against job requirements and produces a structured, evidence-based review for human assessment.
+
+The system is designed to reduce the repetitive work involved in reading resumes, locating relevant experience, identifying gaps, and preparing consistent review notes.
+
+> **The AI assists the review process. It does not make hiring or rejection decisions.**
+
+---
+
+## Problem
+
+Recruiters repeatedly compare resumes against job descriptions by manually:
+
+* reading candidate experience and skills;
+* searching for evidence related to each requirement;
+* identifying missing or unclear information;
+* switching between resumes and job descriptions;
+* preparing review notes for hiring teams.
+
+This project turns that repetitive workflow into a small AI-assisted operating system that a non-developer can run through a web interface.
+
+---
+
+## What It Does
+
+A recruiter provides:
+
+1. a job description;
+2. one or more candidate resumes.
+
+The system then:
+
+1. extracts readable text from uploaded PDFs;
+2. identifies job-relevant requirements;
+3. compares each resume against those requirements;
+4. identifies supporting evidence;
+5. highlights missing or unclear information;
+6. generates a structured candidate review;
+7. presents the result for human assessment.
+
+The final decision remains with the recruiter or hiring manager.
+
+---
+
+## Architecture
+
+```mermaid
+flowchart TD
+    U[Recruiter] --> FE[Next.js Web Interface]
+
+    FE -->|Job description + resumes| API[FastAPI Backend]
+
+    API --> V[Input Validation]
+    V --> PDF[PDF Text Extraction]
+    PDF --> INTAKE[Resume Intake]
+
+    INTAKE --> ORCH[Review Orchestrator]
+
+    ORCH --> REQ[Requirement Extraction]
+    REQ --> AI[LLM Review Engine]
+
+    AI --> MATCH[Evidence Matching]
+    MATCH --> STRUCT[Structured Output Validation]
+
+    STRUCT --> RESULT[Candidate Evidence Review]
+
+    RESULT --> FE
+    FE --> HUMAN[Human Recruiter Review]
+
+    AI --> PROVIDER[OpenAI-Compatible Model Provider]
+```
+
+### Core flow
+
+```text
+Job Description
+      +
+Candidate Resume
+      ↓
+Input Validation
+      ↓
+PDF/Text Extraction
+      ↓
+Requirement Identification
+      ↓
+AI Evidence Matching
+      ↓
+Structured Validation
+      ↓
+Evidence-Based Candidate Review
+      ↓
+Human Assessment
+```
+
+---
+
+## Repository Structure
+
+```text
+resume-parser/
+├── backend/
+│   ├── app/
+│   │   ├── config.py
+│   │   ├── pdf_text.py
+│   │   ├── resume_intake.py
+│   │   ├── schemas.py
+│   │   ├── auth.py
+│   │   ├── main.py
+│   │   └── routers/
+│   │       ├── screenings.py
+│   │       └── auth.py
+│   │
+│   ├── orchestrator/
+│   │   └── resume_orchestrator.py
+│   │
+│   ├── agents/
+│   │   └── screening_agent.py
+│   │
+│   └── tests/
+│
+└── frontend/
+    └── Next.js recruiter interface
+```
+
+---
+
+## Tech Stack
+
+### Backend
+
+* Python
+* FastAPI
+* Pydantic
+* PDF text extraction
+* OpenAI-compatible LLM API
+
+### Frontend
+
+* Next.js
+* TypeScript
+
+### AI Layer
+
+The backend uses an OpenAI-compatible model provider to analyze job requirements and resume evidence.
+
+The AI is responsible for information extraction and evidence organization, not final employment decisions.
+
+---
+
+## Quick Start
+
+### 1. Start the backend
+
+```bash
+cd backend
+
+uv sync
+uv run main.py
+```
+
+Backend:
+
+```text
+http://127.0.0.1:8000
+```
+
+API documentation:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+---
+
+### 2. Start the frontend
+
+In another terminal:
+
+```bash
+cd frontend
+
+npm install
+npm run dev
+```
+
+Frontend:
+
+```text
+http://localhost:3000
+```
+
+---
+
+## Configuration
+
+Create a `.env` file in `backend/`.
+
+Minimum configuration:
+
+```env
+OPENROUTER_API_KEY=your_api_key
+OPENAI_MODEL=your_model_id
+```
+
+The application also supports:
+
+```env
+OPENROUTER_BASE_URL=
+CORS_ORIGINS=
+CORS_ORIGIN_REGEX=
+APP_NAME=
+ENVIRONMENT=
+AUTH_SECRET=
+```
+
+Optional processing settings include:
+
+```env
+MAX_RESUME_FILES=
+MAX_FILE_SIZE_MB=
+MAX_PDF_PAGES=
+MAX_RESUME_CHARS=
+SCREENING_CONCURRENCY=
+SCREENING_DELAY_SECONDS=
+LLM_TEMPERATURE=
+AUTH_TOKEN_TTL_HOURS=
+```
+
+See `backend/app/config.py` for defaults.
+
+---
+
+## API
+
+### `POST /api/v1/screenings`
+
+Processes one job description against one or more resumes.
+
+Content type:
+
+```text
+multipart/form-data
+```
+
+### Inputs
+
+| Field                  | Type   | Required                           |
+| ---------------------- | ------ | ---------------------------------- |
+| `resumes`              | PDF[]  | Yes                                |
+| `job_description_file` | PDF    | One job-description input required |
+| `job_description_text` | String | One job-description input required |
+| `position_title`       | String | No                                 |
+
+Provide either `job_description_file` or `job_description_text`, not both.
+
+### Example
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/screenings \
+  -F "job_description_file=@senior-ml-engineer.pdf" \
+  -F "resumes=@candidate-one.pdf" \
+  -F "resumes=@candidate-two.pdf"
+```
+
+---
+
+## Intended Review Output
+
+The target v1 output is evidence-oriented rather than decision-oriented.
+
+Example:
+
+```json
+{
+  "candidateId": "cand-001",
+  "requirements": [
+    {
+      "requirement": "Python",
+      "status": "evidence_found",
+      "evidence": "8 years of experience building Python services."
+    },
+    {
+      "requirement": "Kubernetes",
+      "status": "no_evidence_found",
+      "evidence": null
+    },
+    {
+      "requirement": "Production ML pipelines",
+      "status": "partial_evidence",
+      "evidence": "Led ML pipeline development at previous employer."
+    }
+  ],
+  "missingInformation": [
+    "No explicit Kubernetes experience identified."
+  ],
+  "summary": "The resume contains relevant Python and ML platform experience, while some infrastructure requirements are not explicitly demonstrated.",
+  "reviewStatus": "human_review_required"
+}
+```
+
+### Important distinction
+
+`no_evidence_found` means:
+
+> the supplied resume does not contain sufficient evidence.
+
+It does **not** mean:
+
+> the candidate does not possess the skill.
+
+---
+
+## Error Handling
+
+The system should distinguish an unsuccessful AI or document-processing operation from an actual candidate assessment.
+
+For example:
+
+```json
+{
+  "candidateId": "cand-002",
+  "status": "processing_error",
+  "assessment": null,
+  "error": "The resume could not be processed."
+}
+```
+
+A provider timeout or unreadable document must never be represented as a low candidate score.
+
+---
+
+## Partial Batch Processing
+
+If one uploaded resume cannot be processed, other valid resumes can continue through the workflow.
+
+Examples of rejected inputs include:
+
+* corrupt PDFs;
+* password-protected PDFs;
+* unsupported files;
+* documents containing no readable text.
+
+Rejected files are reported separately from successfully processed candidates.
+
+Scanned PDFs currently require OCR and are outside the initial scope.
+
+---
+
+## AI Safety and Human Oversight
+
+This project is designed as a **recruiter assistance tool**.
+
+The AI should:
+
+* identify job-related requirements;
+* locate supporting resume evidence;
+* identify missing information;
+* flag ambiguity;
+* generate consistent review summaries.
+
+The AI should not:
+
+* automatically hire candidates;
+* automatically reject candidates;
+* make decisions based on protected characteristics;
+* infer sensitive personal characteristics;
+* verify whether resume claims are truthful;
+* replace recruiter or hiring-manager judgment.
+
+All AI-generated assessments require human review.
+
+---
+
+## Evaluation
+
+The system is evaluated against a fixed test set containing representative, edge, and failure scenarios.
+
+Key metrics include:
+
+| Metric                              | Purpose                                                          |
+| ----------------------------------- | ---------------------------------------------------------------- |
+| Review time                         | Measure workflow efficiency                                      |
+| Requirement identification accuracy | Measure whether relevant criteria are detected                   |
+| Evidence accuracy                   | Measure whether findings are supported by resume text            |
+| Missed evidence                     | Detect relevant information the system overlooked                |
+| Unsupported claims                  | Detect conclusions not supported by the resume                   |
+| Structured-output success           | Measure response reliability                                     |
+| Failure handling                    | Ensure technical errors are not treated as candidate assessments |
+
+The Day 5 system should be compared against the Day 1 manual baseline and, where useful, a simple general-purpose ChatGPT baseline.
+
+---
+
+## Test Scenarios
+
+The evaluation set should cover at least:
+
+* candidate with clear evidence for most requirements;
+* candidate missing several requirements;
+* partially demonstrated requirement;
+* equivalent or related technology;
+* long resume;
+* unusual job title;
+* evidence appearing only inside project experience;
+* conflicting resume information;
+* empty resume;
+* unreadable document;
+* prompt-injection instructions embedded inside a resume;
+* AI provider timeout or malformed response.
+
+Run the automated test suite with:
+
+```bash
+cd backend
+uv run pytest
+```
+
+Tests do not require a live model provider where provider behavior is stubbed.
+
+---
+
+## Authentication
+
+Basic authentication endpoints exist to support the frontend development workflow.
+
+They are currently **development placeholders**, not production-grade authentication.
+
+Before production use, the authentication layer would require improvements including:
+
+* secure deployment secrets;
+* token revocation;
+* persistent database-backed users;
+* rate limiting;
+* password recovery;
+* email verification;
+* stronger session management;
+* authorization enforcement on screening endpoints.
+
+---
+
+## Current Scope
+
+The five-day v1 focuses on one workflow:
+
+> **Job description + candidate resume → evidence-based AI review → human assessment**
+
+### Included
+
+* job-description input;
+* resume PDF upload;
+* text extraction;
+* AI-assisted requirement analysis;
+* structured candidate review;
+* evidence identification;
+* missing-information detection;
+* batch processing;
+* failure handling;
+* recruiter-facing web interface;
+* repeatable evaluation.
+
+### Out of scope
+
+* autonomous hiring;
+* automatic rejection;
+* candidate ranking as a hiring decision;
+* interview automation;
+* background verification;
+* complete ATS integration;
+* OCR for scanned documents;
+* enterprise authentication;
+* model fine-tuning.
+
+---
+
+## Future Direction
+
+A later version may retrieve candidates directly from an external applicant tracking or job-board system rather than requiring manual uploads.
+
+The existing job-board client is intended as an integration path:
+
+```text
+Job Board / ATS
+      ↓
+Candidate Retrieval
+      ↓
+Shared Review Pipeline
+      ↓
+Structured Recruiter Review
+```
+
+This integration is not required for the five-day v1.
+
+---
+
+## Definition of Done
+
+The v1 is complete when a non-developer recruiter can:
+
+1. open the application;
+2. provide a job description;
+3. upload candidate resumes;
+4. start the review without writing prompts or code;
+5. receive structured, evidence-supported results;
+6. clearly see missing or uncertain information;
+7. distinguish processing failures from candidate findings;
+8. use the output as input to their own human assessment.
+
+The project's success is measured by whether this workflow is **faster, repeatable, independently usable, and measurably accurate compared with the Day 1 baseline**.
