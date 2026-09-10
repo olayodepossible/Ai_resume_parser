@@ -47,7 +47,7 @@ class Settings(BaseSettings):
 
     # The project's .env points at OpenRouter's OpenAI-compatible endpoint,
     # so the OpenAI client is pointed there rather than at api.openai.com.
-    openrouter_api_key: str = ""
+    openrouter_api_key: str = os.environ.get("OPENROUTER_API_KEY", "")
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     openai_model: str = "gpt-4.1-mini"
 

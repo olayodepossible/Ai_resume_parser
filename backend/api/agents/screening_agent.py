@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field, ValidationError
 
 logger = logging.getLogger(__name__)
 
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+OPENAI_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 DEFAULT_MODEL = os.environ.get("SCREENING_MODEL", "gpt-4")
 DEFAULT_TEMPERATURE = float(os.environ.get("SCREENING_TEMPERATURE", "0.1"))
 
@@ -128,7 +128,8 @@ class CandidateScreeningAgent:
         self._llm = ChatOpenAI(
             model=self.config.model_name,
             temperature=self.config.temperature,
-            openai_api_key=self.config.openai_api_key,
+            api_key=OPENAI_API_KEY,
+            base_url=self.config.openrouter_base_url,
             max_tokens=self.config.max_tokens,
         )
         self._chain = LLMChain(llm=self._llm, prompt=SCREENING_PROMPT_TEMPLATE)

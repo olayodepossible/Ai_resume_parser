@@ -12,8 +12,8 @@ from pydantic import BaseModel, Field, ValidationError
 
 logger = logging.getLogger(__name__)
 
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
-DEFAULT_MODEL = os.environ.get("RANKING_MODEL", "gpt-4")
+OPENAI_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+DEFAULT_MODEL = os.environ.get("RANKING_MODEL", "gpt-4.1-mini")
 DEFAULT_TEMPERATURE = float(os.environ.get("RANKING_TEMPERATURE", "0.1"))
 
 
@@ -146,7 +146,8 @@ class CandidateRankingAgent:
         self._llm = ChatOpenAI(
             model=self.config.model_name,
             temperature=self.config.temperature,
-            openai_api_key=self.config.openai_api_key,
+            api_key=OPENAI_API_KEY,
+            base_url=self.config.openrouter_base_url,
             max_tokens=self.config.max_tokens,
         )
         self._chain = LLMChain(llm=self._llm, prompt=RANKING_PROMPT_TEMPLATE)
