@@ -7,7 +7,7 @@ from pathlib import Path
 from langchain_openai import ChatOpenAI
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from app.auth import UserStore
+from .auth import UserStore
 
 # The `backend/` directory, i.e. the parent of this package.
 BACKEND_ROOT = Path(__file__).resolve().parent.parent

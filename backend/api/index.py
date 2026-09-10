@@ -1,7 +1,13 @@
-"""Development entry point: `uv run uvicorn api.app.main:app --reload`.
+"""
+Application entry point.
 
-For production use uvicorn (or gunicorn) directly:
-    uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
+Development from repository root:
+    uv run uvicorn backend.api.app.main:app --reload
+
+Vercel:
+    backend/api/index.py
 """
 
-from app.main import app
+from backend.api.app.main import app
+
+__all__ = ["app"]

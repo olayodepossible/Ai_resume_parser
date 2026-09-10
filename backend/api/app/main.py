@@ -3,9 +3,9 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import get_settings
-from app.routers import auth, screenings
-from app.schemas import HealthResponse
+from .config import get_settings
+from .routers import auth, screenings
+from .schemas import HealthResponse
 
 settings = get_settings()
 
