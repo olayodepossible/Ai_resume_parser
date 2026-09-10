@@ -1,0 +1,41 @@
+[project]
+name = "ai-resume-screening-app"
+version = "0.1.0"
+description = "LLM-assisted resume screening and candidate ranking"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "email-validator>=2.2",
+    "fastapi>=0.115",
+    "httpx>=0.27",
+    "langchain>=0.3,<1.0",
+    "langchain-core>=0.3,<1.0",
+    "langchain-openai>=0.2,<1.0",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "pypdf>=5.1",
+    "python-dotenv>=1.0",
+    "python-multipart>=0.0.12",
+    "uvicorn[standard]>=0.32",
+]
+
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+# Every async test in the suite is a coroutine to be run, so opt in globally
+# rather than decorating each one.
+asyncio_mode = "auto"
+filterwarnings = [
+    "error",
+    # anyio's lazy-import shims, reached through Starlette's TestClient.
+    "ignore:The anyio\\..*alias is deprecated:DeprecationWarning",
+    # LLMChain, used by the not-yet-wired-up modules in agents/.
+    "ignore::langchain_core._api.deprecation.LangChainDeprecationWarning",
+]
