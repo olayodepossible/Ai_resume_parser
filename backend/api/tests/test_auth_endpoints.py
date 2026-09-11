@@ -9,14 +9,14 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from app.auth import (
+from ..app.auth import (
     InvalidTokenError,
     issue_token,
     read_token,
     verify_password,
 )
-from app.config import BACKEND_ROOT, get_user_store
-from tests.conftest import build_settings
+from ..app.config import BACKEND_ROOT, get_user_store
+from .conftest import build_settings
 
 CREDENTIALS = {
     "email": "Ada@Example.com",

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.resume_intake import (
+from ..app.resume_intake import (
     filename_stem,
     guess_email,
     guess_name,

@@ -13,9 +13,9 @@ import re
 
 from fastapi.testclient import TestClient
 
-from app.config import LOOPBACK_ORIGIN_REGEX, Settings
-from app.main import settings as app_settings
-from tests.conftest import build_settings
+from ..app.config import LOOPBACK_ORIGIN_REGEX, Settings
+from ..app.main import settings as app_settings
+from .conftest import build_settings
 
 PREFLIGHT_HEADERS = {
     "Access-Control-Request-Method": "POST",

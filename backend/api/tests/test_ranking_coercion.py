@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import pytest
 
-from orchestrator.resume_orchestrator import coerce_ranking_output
+from backend.api.orchestrator.resume_orchestrator import coerce_ranking_output
 
 IDS = ["cand-001", "cand-002", "cand-003"]
 

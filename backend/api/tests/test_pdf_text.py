@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import pytest
 
-from app.pdf_text import (
+from ..app.pdf_text import (
     PdfExtractionError,
     extract_pdf_text,
     looks_like_pdf,
     normalize_text,
 )
-from tests.pdf_factory import (
+from .pdf_factory import (
     ALICE_RESUME,
     CORRUPT_PDF,
     JOB_DESCRIPTION,

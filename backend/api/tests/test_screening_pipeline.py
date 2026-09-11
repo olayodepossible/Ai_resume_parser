@@ -9,8 +9,8 @@ from typing import Any
 
 import pytest
 
-import orchestrator.resume_orchestrator as orch
-from tests.conftest import LLMStub, make_candidate
+import backend.api.orchestrator.resume_orchestrator as orch
+from .conftest import LLMStub, make_candidate
 
 MODEL = object()
 

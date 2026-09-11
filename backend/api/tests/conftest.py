@@ -8,9 +8,10 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-import orchestrator.resume_orchestrator as orch
-from app.config import Settings, get_settings
-from app.main import app
+import backend.api.orchestrator.resume_orchestrator as orch
+from ..app.config import Settings, get_settings
+from ..app.main import app
+from ..app.routers import screenings as screenings_router
 
 # Explicit values for every setting the tests depend on. Passing them as init
 # kwargs (which outrank both .env and the process environment) keeps runs
@@ -163,17 +164,25 @@ class LLMStub:
 def llm(monkeypatch: pytest.MonkeyPatch) -> LLMStub:
     stub = LLMStub()
 
-    monkeypatch.setattr(orch, "screen_candidate", stub.screen_candidate)
-    monkeypatch.setattr(orch, "rank_candidates", stub.rank_candidates)
-
-    # The endpoint builds a real client otherwise, which would need a live key.
     monkeypatch.setattr(
-        "app.routers.screenings.build_chat_model",
+        orch,
+        "screen_candidate",
+        stub.screen_candidate,
+    )
+    monkeypatch.setattr(
+        orch,
+        "rank_candidates",
+        stub.rank_candidates,
+    )
+
+    # Prevent the endpoint from constructing a real LLM client.
+    monkeypatch.setattr(
+        screenings_router,
+        "build_chat_model",
         lambda settings: object(),
     )
 
     return stub
-
 
 def make_candidate(candidate_id: str, name: str | None = None) -> orch.Candidate:
     return orch.Candidate(

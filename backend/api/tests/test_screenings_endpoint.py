@@ -5,9 +5,9 @@ from collections.abc import Callable
 import pytest
 from fastapi.testclient import TestClient
 
-import orchestrator.resume_orchestrator as orch
-from tests.conftest import LLMStub
-from tests.pdf_factory import (
+import backend.api.orchestrator.resume_orchestrator as orch
+from .conftest import LLMStub
+from .pdf_factory import (
     ALICE_RESUME,
     ANONYMOUS_RESUME,
     BOB_RESUME,
@@ -463,7 +463,7 @@ class TestTruncationLimits:
     def test_pages_beyond_the_limit_are_ignored(
         self, make_client: Callable[..., TestClient], llm: LLMStub
     ) -> None:
-        from tests.pdf_factory import make_pdf
+        from .pdf_factory import make_pdf
 
         client = make_client(max_pdf_pages=1)
         pdf = make_pdf([["Alice Johnson"], ["second page marker"]])
