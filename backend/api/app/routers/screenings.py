@@ -5,26 +5,26 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
-from app.config import (
+from ..config import (
     LLMNotConfiguredError,
     Settings,
     build_chat_model,
     get_settings,
 )
-from app.pdf_text import PdfExtractionError, extract_pdf_text, normalize_text
-from app.resume_intake import (
+from ..pdf_text import PdfExtractionError, extract_pdf_text, normalize_text
+from ..resume_intake import (
     filename_stem,
     guess_email,
     guess_name,
     make_candidate_id,
     safe_filename,
 )
-from app.schemas import (
+from ..schemas import (
     CandidateSummary,
     RejectedFile,
     ScreeningResponse,
 )
-from orchestrator.resume_orchestrator import Candidate, run_screening_pipeline
+from backend.api.orchestrator.resume_orchestrator import Candidate, run_screening_pipeline
 
 router = APIRouter(prefix="/api/v1", tags=["screenings"])
 

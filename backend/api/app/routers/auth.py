@@ -11,7 +11,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from app.auth import (
+from ..auth import (
     EmailAlreadyRegisteredError,
     InvalidCredentialsError,
     InvalidTokenError,
@@ -20,8 +20,8 @@ from app.auth import (
     public_user,
     read_token,
 )
-from app.config import Settings, get_settings, get_user_store
-from app.schemas import (
+from ..config import Settings, get_settings, get_user_store
+from ..schemas import (
     AuthResponse,
     LoginRequest,
     SignupRequest,
